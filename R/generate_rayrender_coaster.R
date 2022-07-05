@@ -40,6 +40,11 @@
 #'
 #' #Increase the number of samples and resolution for a high quality animation (but longer render):
 #' animate_rollercoaster(samples=128, width=800, height=800)
+#'
+#' #Set the FOV to 360 to render a movie for VR headsets
+#' #Use the Spatial Media Metadata Injector app from google to add the metadata to render in VR on
+#' #youtube (available here: https://github.com/google/spatial-media/releases)
+#' animate_rollercoaster(samples=128, width=800, height=800, fov=360, filename="video360.mp4")
 #' }
 generate_rayrender_coaster = function(scene, frames=360,  closed = TRUE, viewer_offset = NA,
                                       track_radius = NA,

@@ -6,6 +6,8 @@
 #' package.
 #' @param samples Default `128`. Number of samples
 #' @param sample_method Default `sobol_blue`. Sample method (see rayrender documentation).
+#' @param fov Default `NA`. Field of view, overriding the value set in the motion dataframe. Set
+#' this to `360` to get a video that can be converted for virtual reality/headset viewing.
 #' @param ... Additional parameters to pass to `rayrender::render_animation()`.
 #' @param keep_images Default `TRUE`. Whether to keep all the image frames if the output is an mp4 file.
 #' @param framerate Default `30`. Only used if rendering an mp4 file. Frames per second of the movie.
@@ -41,6 +43,9 @@
 #'#Increase the number of samples and resolution for a high quality animation (but longer render):
 #'animate_rollercoaster(samples=128, width=800, height=800)
 #'
+#'#Set the FOV to 360 to render a movie for VR headsets
+#'animate_rollercoaster(samples=128, width=800, height=800, filename="video360.mp4")
+#'
 #'#Alternatively, get the scene and motion data yourself and call `rayrender::render_animation()`
 #'#directly.
 #'scene = get_rayrender_scene()
@@ -48,7 +53,7 @@
 #'
 #'render_animation(scene, motion, samples=1, sample_method="sobol_blue")
 #'}
-animate_rollercoaster = function(filename = NA, samples = 128, sample_method="sobol_blue",
+animate_rollercoaster = function(filename = NA, samples = 128, sample_method="sobol_blue", fov=NA,
                                  keep_images = TRUE, framerate = 30, vfilter = "null",
                                  codec = NULL, audio = NULL,
                                  ...) {
@@ -68,6 +73,9 @@ animate_rollercoaster = function(filename = NA, samples = 128, sample_method="so
   motion = get_rayrender_motion()
   if(nrow(scene) == 0 || nrow(motion) == 0) {
     stop("Generate rollercoaster with `generate_rayshader_coaster()` or `generate_rayrender_coaster()` first.")
+  }
+  if(!is.na(fov)) {
+    motion$fov = fov
   }
 
   if(save_images || is.na(filename)) {

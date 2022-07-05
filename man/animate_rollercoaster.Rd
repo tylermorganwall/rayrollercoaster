@@ -8,6 +8,7 @@ animate_rollercoaster(
   filename = NA,
   samples = 128,
   sample_method = "sobol_blue",
+  fov = NA,
   keep_images = TRUE,
   framerate = 30,
   vfilter = "null",
@@ -25,6 +26,9 @@ package.}
 \item{samples}{Default `128`. Number of samples}
 
 \item{sample_method}{Default `sobol_blue`. Sample method (see rayrender documentation).}
+
+\item{fov}{Default `NA`. Field of view, overriding the value set in the motion dataframe. Set
+this to `360` to get a video that can be converted for virtual reality/headset viewing.}
 
 \item{keep_images}{Default `TRUE`. Whether to keep all the image frames if the output is an mp4 file.}
 
@@ -68,6 +72,9 @@ animate_rollercoaster(samples=1, width=200,height=200)
 
 #Increase the number of samples and resolution for a high quality animation (but longer render):
 animate_rollercoaster(samples=128, width=800, height=800)
+
+#Set the FOV to 360 to render a movie for VR headsets
+animate_rollercoaster(samples=128, width=800, height=800, filename="video360.mp4")
 
 #Alternatively, get the scene and motion data yourself and call `rayrender::render_animation()`
 #directly.
