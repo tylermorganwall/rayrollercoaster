@@ -8,12 +8,13 @@ generate_rayrender_coaster(
   scene,
   frames = 360,
   closed = TRUE,
-  viewer_offset = 5,
-  track_radius = 1,
+  viewer_offset = NA,
+  track_radius = NA,
   track_material = rayrender::diffuse(color = "red"),
   posts = TRUE,
   post_interval = 10,
   post_material = rayrender::diffuse(color = "grey10"),
+  post_depth = -1,
   ...
 )
 }
@@ -24,9 +25,9 @@ generate_rayrender_coaster(
 
 \item{closed}{Default `TRUE`. Whether to close the loop in the rollercoaster.}
 
-\item{viewer_offset}{Default `5`. Height of the viewer along the track.}
+\item{viewer_offset}{Default `NA`. Height of the viewer along the track. Defaults to twice the `track_radius`.}
 
-\item{track_radius}{Default `1`. Radius of the track.}
+\item{track_radius}{Default `NA`. Radius of the track. Defaults to 1/100th the minimum bounding box of the motion.}
 
 \item{track_material}{Default `diffuse(color="red")`. Material for the track.}
 
@@ -36,6 +37,8 @@ generate_rayrender_coaster(
 
 \item{post_material}{Default `diffuse(color="grey10")`. Material for the track.}
 
+\item{post_depth}{Default `-1`. Depth to which the posts are drawn.}
+
 \item{...}{Additional parameters to pass to `rayrender::render_scene()`.}
 }
 \value{
@@ -43,4 +46,31 @@ A list with the resulting rayrender scene and the motion keyframes to pass to `r
 }
 \description{
 Generate Rayrender Rollercoaster
+}
+\examples{
+#Generate a rayrender scene (an R on a checkerboard, with a glass sphere)
+\donttest{
+library(rayrender)
+scene = generate_ground(material=diffuse(checkercolor="grey20")) |>
+  add_object(obj_model(r_obj(),y=-1,x=1, material=diffuse(color = "purple"))) |>
+  add_object(sphere(y=-0,x=-1,radius=1, material=dielectric())) |>
+  add_object(sphere(y=5,x=5,z=5,material=light(intensity = 50))) |>
+  add_object(sphere(y=5,x=-5,z=5,material=light(color="orange",intensity = 50)))
+render_scene(scene, fov=40,sample_method="sobol_blue")
+
+#Now, let's fly through a series of points to build the rollercoaster.
+#You can pass arguments to `render_scene()` via `...`.
+#This function doesn't return anything, but saves the scene with the rollercoaster and the
+#motion information internally.
+generate_rayrender_coaster(scene, fov = 120)
+
+#We now can create our animation using `animate_rollercoaster()`. This extracts the information
+#(scene and motion) in the previous step. If no filename is given,
+#it will simply preview the animation in the interactive screen, without saving anything.
+#Set samples to `1` to render a quick preview.
+animate_rollercoaster(samples=1)
+
+#Increase the number of samples and resolution for a high quality animation (but longer render):
+animate_rollercoaster(samples=128, width=800, height=800)
+}
 }

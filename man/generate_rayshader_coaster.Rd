@@ -7,8 +7,8 @@
 generate_rayshader_coaster(
   frames = 360,
   closed = TRUE,
-  viewer_offset = 5,
-  track_radius = 1,
+  viewer_offset = NA,
+  track_radius = NA,
   track_material = rayrender::diffuse(color = "red"),
   posts = TRUE,
   post_interval = 10,
@@ -34,9 +34,9 @@ generate_rayshader_coaster(
 
 \item{closed}{Default `TRUE`. Whether to close the loop in the rollercoaster.}
 
-\item{viewer_offset}{Default `5`. Height of the viewer along the track.}
+\item{viewer_offset}{Default `NA`. Height of the viewer along the track.  Defaults to twice the `track_radius`.}
 
-\item{track_radius}{Default `1`. Radius of the track.}
+\item{track_radius}{Default `NA`. Radius of the track. Defaults to 1/100th the minimum bounding box of the motion.}
 
 \item{track_material}{Default `diffuse(color="red")`. Material for the track.}
 
@@ -83,4 +83,41 @@ A list with the resulting rayrender scene and the motion keyframes to pass to `r
 }
 \description{
 Generate Rayshader Rollercoaster
+}
+\examples{
+#Generate a rayshader scene
+\donttest{
+library(rayshader)
+
+volcano |>
+  sphere_shade() |>
+  plot_3d(volcano,fov=90)
+
+#Now, let's fly through a series of points to build the rollercoaster.
+#You can pass arguments to `render_scene()` via `...`.
+#This function doesn't return anything, but saves the scene with the rollercoaster and the
+#motion information internally. This extracts the scene from `rayshader` directly from `rgl`.
+
+#Here, we turn off the lighting and use ambient lighting only
+generate_rayshader_coaster(light=FALSE, ambient_light=T)
+
+#We can also add extra lights by passing arguments via `...` to `rayshader::render_highquality()`
+generate_rayshader_coaster(lightdirection=c(315,45),lightcolor=c("orange","white"))
+
+#We now can create our animation using `animate_rollercoaster()`. This extracts the information
+#(scene and motion) in the previous step. If no filename is given,
+#it will simply preview the animation in the interactive screen, without saving anything.
+#Set samples to `1` to render a quick preview.
+animate_rollercoaster(samples=1, width=200,height=200)
+
+#Increase the number of samples and resolution for a high quality animation (but longer render):
+animate_rollercoaster(samples=128, width=800, height=800)
+
+#Alternatively, get the scene and motion data yourself and call `rayrender::render_animation()`
+#directly.
+scene = get_rayrender_scene()
+motion = get_rayrender_motion()
+
+render_animation(scene, motion, samples=1, sample_method="sobol_blue")
+}
 }

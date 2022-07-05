@@ -8,7 +8,10 @@ Description: Generates 3D rollercoasters using the rayshader and rayrender packa
 License: GPL-3
 Imports: rayshader,
          rayrender,
-         rgl
+         rgl,
+         av
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
+Depends: 
+    R (>= 2.10)

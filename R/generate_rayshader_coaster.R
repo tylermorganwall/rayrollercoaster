@@ -2,11 +2,11 @@
 #'
 #'@param frames Default `360`. Number of frames in the animation.
 #'@param closed Default `TRUE`. Whether to close the loop in the rollercoaster.
-#'@param track_radius Default `1`. Radius of the track.
+#'@param track_radius Default `NA`. Radius of the track. Defaults to 1/100th the minimum bounding box of the motion.
 #'@param track_material Default `diffuse(color="red")`. Material for the track.
 #'@param post_interval Default `10`. Keyframe interval between posts supporting track.
 #'@param post_material Default `diffuse(color="grey10")`. Material for the track.
-#'@param viewer_offset Default `5`. Height of the viewer along the track.
+#'@param viewer_offset Default `NA`. Height of the viewer along the track.  Defaults to twice the `track_radius`.
 #'@param posts Default `TRUE`. Whether to include posts holding the track up.
 #'@param light Default `TRUE`. Whether there should be a light in the scene. If not, the scene will be lit with a bluish sky.
 #'@param lightdirection Default `315`. Position of the light angle around the scene.
@@ -31,8 +31,43 @@
 #' @export
 #'
 #' @examples
-generate_rayshader_coaster = function(frames=360,  closed = TRUE, viewer_offset = 5,
-                                      track_radius = 1,
+#' #Generate a rayshader scene
+#' \donttest{
+#' library(rayshader)
+#'
+#' volcano |>
+#'   sphere_shade() |>
+#'   plot_3d(volcano,fov=90)
+#'
+#' #Now, let's fly through a series of points to build the rollercoaster.
+#' #You can pass arguments to `render_scene()` via `...`.
+#' #This function doesn't return anything, but saves the scene with the rollercoaster and the
+#' #motion information internally. This extracts the scene from `rayshader` directly from `rgl`.
+#'
+#' #Here, we turn off the lighting and use ambient lighting only
+#' generate_rayshader_coaster(light=FALSE, ambient_light=T)
+#'
+#' #We can also add extra lights by passing arguments via `...` to `rayshader::render_highquality()`
+#' generate_rayshader_coaster(lightdirection=c(315,45),lightcolor=c("orange","white"))
+#'
+#'#We now can create our animation using `animate_rollercoaster()`. This extracts the information
+#'#(scene and motion) in the previous step. If no filename is given,
+#'#it will simply preview the animation in the interactive screen, without saving anything.
+#'#Set samples to `1` to render a quick preview.
+#'animate_rollercoaster(samples=1, width=200,height=200)
+#'
+#'#Increase the number of samples and resolution for a high quality animation (but longer render):
+#'animate_rollercoaster(samples=128, width=800, height=800)
+#'
+#'#Alternatively, get the scene and motion data yourself and call `rayrender::render_animation()`
+#'#directly.
+#'scene = get_rayrender_scene()
+#'motion = get_rayrender_motion()
+#'
+#'render_animation(scene, motion, samples=1, sample_method="sobol_blue")
+#'}
+generate_rayshader_coaster = function(frames=360,  closed = TRUE, viewer_offset = NA,
+                                      track_radius = NA,
                                       track_material = rayrender::diffuse(color="red"),
                                       posts = TRUE, post_interval = 10,
                                       post_material = rayrender::diffuse(color="grey10"),
@@ -46,10 +81,10 @@ generate_rayshader_coaster = function(frames=360,  closed = TRUE, viewer_offset 
   }
   cam = rayshader::render_camera()
   if(cam[4] == 0) {
-    stop("FOV must be greater than 0 to fly through scene—preferably something large, like 120.")
+    stop("FOV must be greater than 0 to fly through scene--preferably something large, like 120.")
   }
   if(!rayrender:::has_gui_capability()) {
-    stop("This version of rayrender was not built with interactive controls enabled—build the developmental version from github.")
+    stop("This version of rayrender was not built with interactive controls enabled--build the developmental version from github.")
   }
 
   message("Fly through the scene and press `K` at each point where you want the rollercoaster to travel through, and press ESC when done (or close the window). Below are the interactive controls. Try pressing `TAB` to switch to free flying mode if you get stuck.\n")
@@ -72,13 +107,17 @@ generate_rayshader_coaster = function(frames=360,  closed = TRUE, viewer_offset 
     warning("Only two control points--can't be a closed curve.")
     closed = FALSE
   }
+  if(is.na(track_radius)) {
+    track_radius = max((apply(keyframes,2,max) - apply(keyframes,2,min))[c(1,3)])/100
+    viewer_offset = track_radius*2
+  }
   path_offset = keyframes[,1:3]
   path_offset[,1] = 0
   path_offset[,3] = 0
   path_offset[,2] = viewer_offset
 
   motion = rayrender::generate_camera_motion(positions = keyframes[,1:3]+path_offset, lookats=keyframes[,1:3]+path_offset,
-                               frames = frames, constant_step = T,
+                               frames = frames, constant_step = F,
                                type = "bezier", offset_lookat = 0.1, closed = closed)
   motion_offset = motion[,1:3]
   motion_offset[,1] = 0
@@ -100,5 +139,9 @@ generate_rayshader_coaster = function(frames=360,  closed = TRUE, viewer_offset 
     strutscene = do.call(rbind,strutlist)
     scene = rayrender::add_object(scene, strutscene)
   }
-  return(list(scene = rayrender::add_object(scene, path_obj),motion = motion))
+  scene = rayrender::add_object(scene, path_obj)
+
+  assign("motion_info",motion, envir = ray_environment)
+  assign("scene_info",scene, envir = ray_environment)
+  message("Scene and motion info saved. Create the animation by calling `animate_rollercoaster()`, or call `get_rayrender_scene()` or `get_rayrender_motion()` to access the rayrender scene and motion info directly (which can be passed to `rayrender::render_animation()`.")
 }
