@@ -50,26 +50,26 @@
 #' #We can also add extra lights by passing arguments via `...` to `rayshader::render_highquality()`
 #' generate_rayshader_coaster(lightdirection=c(315,45),lightcolor=c("orange","white"))
 #'
-#'#We now can create our animation using `animate_rollercoaster()`. This extracts the information
-#'#(scene and motion) in the previous step. If no filename is given,
-#'#it will simply preview the animation in the interactive screen, without saving anything.
-#'#Set samples to `1` to render a quick preview.
-#'animate_rollercoaster(samples=1, width=200,height=200)
+#' #We now can create our animation using `animate_rollercoaster()`. This extracts the information
+#' #(scene and motion) in the previous step. If no filename is given,
+#' #it will simply preview the animation in the interactive screen, without saving anything.
+#' #Set samples to `1` to render a quick preview.
+#' animate_rollercoaster(samples=1, width=200,height=200)
 #'
-#'#Increase the number of samples and resolution for a high quality animation (but longer render):
-#'animate_rollercoaster(samples=128, width=800, height=800)
+#' #Increase the number of samples and resolution for a high quality animation (but longer render):
+#' animate_rollercoaster(samples=128, width=800, height=800)
 #'
-#'#Set the FOV to 360 to render a movie for VR headsets
-#'#Use the Spatial Media Metadata Injector app from google to add the metadata to render in VR on
-#'#youtube (available here: https://github.com/google/spatial-media/releases)
-#'animate_rollercoaster(samples=128, width=800, height=800, fov=360, filename="video360.mp4")
+#' #Set the FOV to 360 to render a movie for VR headsets
+#' #Use the Spatial Media Metadata Injector app from google to add the metadata to render in VR on
+#' #youtube (available here: https://github.com/google/spatial-media/releases)
+#' animate_rollercoaster(samples=128, width=800, height=800, fov=360, filename="video360.mp4")
 #'
-#'#Alternatively, get the scene and motion data yourself and call `rayrender::render_animation()`
-#'#directly.
-#'scene = get_rayrender_scene()
-#'motion = get_rayrender_motion()
+#' #Alternatively, get the scene and motion data yourself and call `rayrender::render_animation()`
+#' #directly.
+#' scene = get_rayrender_scene()
+#' motion = get_rayrender_motion()
 #'
-#'render_animation(scene, motion, samples=1, sample_method="sobol_blue")
+#' render_animation(scene, motion, samples=1, sample_method="sobol_blue")
 #'}
 generate_rayshader_coaster = function(frames=360,  closed = TRUE, viewer_offset = NA,
                                       track_radius = NA,
@@ -93,16 +93,24 @@ generate_rayshader_coaster = function(frames=360,  closed = TRUE, viewer_offset 
   }
 
   message("Fly through the scene and press `K` at each point where you want the rollercoaster to travel through, and press ESC when done (or close the window). Below are the interactive controls. Try pressing `TAB` to switch to free flying mode if you get stuck.\n")
+  message(
+    "--------------------------Interactive Mode Controls---------------------------
+W/A/S/D: Horizontal Movement: | Q/Z: Vertical Movement | Up/Down: Adjust FOV | ESC: Close
+Left/Right: Adjust Aperture  | 1/2: Adjust Focal Distance | 3/4: Rotate Environment Light
+P: Print Camera Info | R: Reset Camera |  TAB: Toggle Orbit Mode |  E/C: Adjust Step Size
+K: Save Keyframe | L: Reset Camera to Last Keyframe (if set) | F: Toggle Fast Travel Mode
+Left Mouse Click: Change Look At (new focal distance) | Right Mouse Click: Change Look At ")
   scene = rayshader::render_highquality(light = light, lightdirection = lightdirection, lightaltitude = lightaltitude, lightsize=lightsize,
                                         lightintensity = lightintensity, lightcolor = lightcolor, obj_material = obj_material,
                                         cache_filename=cache_filename, width = width, height = height,
                                         ground_material = ground_material,
                                         ground_size=ground_size, scene_elements=scene_elements, return_scene = TRUE, ...)
+  suppressMessages(
   rayshader::render_highquality(light = light, lightdirection = lightdirection, lightaltitude = lightaltitude, lightsize=lightsize,
                                         lightintensity = lightintensity, lightcolor = lightcolor, obj_material = obj_material,
                                         cache_filename=cache_filename, width = width, height = height,
                                         ground_material = ground_material,samples=1000, sample_method="sobol_blue",
-                                        ground_size=ground_size, scene_elements=scene_elements, return_scene = FALSE, ...)
+                                        ground_size=ground_size, scene_elements=scene_elements, return_scene = FALSE, ...))
   keyframes = rayrender::get_saved_keyframes()
 
   if(nrow(keyframes) == 0) {

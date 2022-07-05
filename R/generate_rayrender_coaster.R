@@ -57,7 +57,15 @@ generate_rayrender_coaster = function(scene, frames=360,  closed = TRUE, viewer_
   }
 
   message("Fly through the scene and press `K` at each point where you want the rollercoaster to travel through. Below are the interactive controls. Try pressing `TAB` to switch to free flying mode if you get stuck.\n")
-  rayrender::render_scene(scene, samples=1000,sample_method="sobol_blue", ...)
+  message(
+    "--------------------------Interactive Mode Controls---------------------------
+W/A/S/D: Horizontal Movement: | Q/Z: Vertical Movement | Up/Down: Adjust FOV | ESC: Close
+Left/Right: Adjust Aperture  | 1/2: Adjust Focal Distance | 3/4: Rotate Environment Light
+P: Print Camera Info | R: Reset Camera |  TAB: Toggle Orbit Mode |  E/C: Adjust Step Size
+K: Save Keyframe | L: Reset Camera to Last Keyframe (if set) | F: Toggle Fast Travel Mode
+Left Mouse Click: Change Look At (new focal distance) | Right Mouse Click: Change Look At ")
+  suppressMessages(
+  rayrender::render_scene(scene, samples=1000,sample_method="sobol_blue", ...))
   keyframes = rayrender::get_saved_keyframes()
 
   if(nrow(keyframes) == 0) {
