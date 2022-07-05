@@ -3,6 +3,8 @@
 
 # rayrollercoaster
 
+https://user-images.githubusercontent.com/297609/177256172-ddfc3bc7-cc97-4dbf-b33c-9a6045c3d67b.mp4
+
 Make 3D rollercoasters out of rayshader and rayrender scenes, without
 leaving R! Use rayrender’s interactive renderer to fly through your
 scene or dataviz and add a fun ride to your scene.
