@@ -72,7 +72,7 @@
 #' render_animation(scene, motion, samples=1, sample_method="sobol_blue")
 #'}
 generate_rayshader_coaster = function(frames=360,  closed = TRUE, viewer_offset = NA,
-                                      track_radius = NA,
+                                      track_radius = NA, revise_existing = FALSE,
                                       track_material = rayrender::diffuse(color="red"),
                                       posts = TRUE, post_interval = 10,
                                       post_material = rayrender::diffuse(color="grey10"),
@@ -81,36 +81,46 @@ generate_rayshader_coaster = function(frames=360,  closed = TRUE, viewer_offset 
                                       cache_filename=NULL, width = NULL, height = NULL,
                                       ground_material = rayrender::diffuse(),
                                       ground_size=10000, scene_elements=NULL, ...) {
-  if(rgl::rgl.cur() == 0) {
-    stop("No rgl window currently open.")
-  }
-  cam = rayshader::render_camera()
-  if(cam[4] == 0) {
-    stop("FOV must be greater than 0 to fly through scene--preferably something large, like 120.")
-  }
-  if(!rayrender:::has_gui_capability()) {
-    stop("This version of rayrender was not built with interactive controls enabled--build the developmental version from github.")
-  }
+  if(!revise_existing) {
+    if(rgl::rgl.cur() == 0) {
+      stop("No rgl window currently open.")
+    }
+    cam = rayshader::render_camera()
+    if(cam[4] == 0) {
+      stop("FOV must be greater than 0 to fly through scene--preferably something large, like 120.")
+    }
+    if(!rayrender:::has_gui_capability()) {
+      stop("This version of rayrender was not built with interactive controls enabled--build the developmental version from github.")
+    }
 
-  message("Fly through the scene and press `K` at each point where you want the rollercoaster to travel through, and press ESC when done (or close the window). Below are the interactive controls. Try pressing `TAB` to switch to free flying mode if you get stuck.\n")
-  message(
-    "--------------------------Interactive Mode Controls---------------------------
-W/A/S/D: Horizontal Movement: | Q/Z: Vertical Movement | Up/Down: Adjust FOV | ESC: Close
-Left/Right: Adjust Aperture  | 1/2: Adjust Focal Distance | 3/4: Rotate Environment Light
-P: Print Camera Info | R: Reset Camera |  TAB: Toggle Orbit Mode |  E/C: Adjust Step Size
-K: Save Keyframe | L: Reset Camera to Last Keyframe (if set) | F: Toggle Fast Travel Mode
-Left Mouse Click: Change Look At (new focal distance) | Right Mouse Click: Change Look At ")
-  scene = rayshader::render_highquality(light = light, lightdirection = lightdirection, lightaltitude = lightaltitude, lightsize=lightsize,
-                                        lightintensity = lightintensity, lightcolor = lightcolor, obj_material = obj_material,
-                                        cache_filename=cache_filename, width = width, height = height,
-                                        ground_material = ground_material,
-                                        ground_size=ground_size, scene_elements=scene_elements, return_scene = TRUE, ...)
-  suppressMessages(
-  rayshader::render_highquality(light = light, lightdirection = lightdirection, lightaltitude = lightaltitude, lightsize=lightsize,
-                                        lightintensity = lightintensity, lightcolor = lightcolor, obj_material = obj_material,
-                                        cache_filename=cache_filename, width = width, height = height,
-                                        ground_material = ground_material,samples=1000, sample_method="sobol_blue",
-                                        ground_size=ground_size, scene_elements=scene_elements, return_scene = FALSE, ...))
+    message("Fly through the scene and press `K` at each point where you want the rollercoaster to
+            travel through, and press ESC when done (or close the window). Below are the interactive
+            controls. Try pressing `TAB` to switch to free flying mode if you get stuck.\n")
+    message(
+      "--------------------------Interactive Mode Controls---------------------------
+  W/A/S/D: Horizontal Movement: | Q/Z: Vertical Movement | Up/Down: Adjust FOV | ESC: Close
+  Left/Right: Adjust Aperture  | 1/2: Adjust Focal Distance | 3/4: Rotate Environment Light
+  P: Print Camera Info | R: Reset Camera |  TAB: Toggle Orbit Mode |  E/C: Adjust Step Size
+  K: Save Keyframe | L: Reset Camera to Last Keyframe (if set) | F: Toggle Fast Travel Mode
+  Left Mouse Click: Change Look At (new focal distance) | Right Mouse Click: Change Look At ")
+    scene = rayshader::render_highquality(light = light, lightdirection = lightdirection, lightaltitude = lightaltitude, lightsize=lightsize,
+                                          lightintensity = lightintensity, lightcolor = lightcolor, obj_material = obj_material,
+                                          cache_filename=cache_filename, width = width, height = height,
+                                          ground_material = ground_material,
+                                          ground_size=ground_size, scene_elements=scene_elements, return_scene = TRUE, ...)
+    assign("basic_scene_info",scene, envir = ray_environment)
+    suppressMessages(
+    rayshader::render_highquality(light = light, lightdirection = lightdirection, lightaltitude = lightaltitude, lightsize=lightsize,
+                                          lightintensity = lightintensity, lightcolor = lightcolor, obj_material = obj_material,
+                                          cache_filename=cache_filename, width = width, height = height,
+                                          ground_material = ground_material,samples=1000, sample_method="sobol_blue",
+                                          ground_size=ground_size, scene_elements=scene_elements, return_scene = FALSE, ...))
+  } else {
+    scene = get("basic_scene_info",  envir = ray_environment)
+    if(nrow(scene) == 0) {
+      stop("Can't revise existing scene if no scene set.")
+    }
+  }
   keyframes = rayrender::get_saved_keyframes()
 
   if(nrow(keyframes) == 0) {
@@ -122,6 +132,8 @@ Left Mouse Click: Change Look At (new focal distance) | Right Mouse Click: Chang
   }
   if(is.na(track_radius)) {
     track_radius = max((apply(keyframes,2,max) - apply(keyframes,2,min))[c(1,3)])/100
+  }
+  if(is.na(viewer_offset)) {
     viewer_offset = track_radius*2
   }
   path_offset = keyframes[,1:3]
